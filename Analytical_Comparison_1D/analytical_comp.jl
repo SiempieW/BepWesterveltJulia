@@ -1,4 +1,4 @@
-using DifferentialEquations,LinearAlgebra,SparseArrays,Plots,BenchmarkTools,Printf
+using DifferentialEquations,LinearAlgebra,SparseArrays,Plots,BenchmarkTools,Printf,Interpolations
 
 function wave!(du,u,p,t)
     Np1::Int64,temp,A = p
@@ -56,7 +56,7 @@ if true
     p_max = 3*10^6
     ρ₀ = 1000
 
-    A = c^2 .* A_gen(N+2);
+    A = c^2 .* A_Gen(N+2);
 
     u0 = zeros(2*Np1);
     u0[Np1+1:end] = initial_u(Np1);
@@ -71,7 +71,7 @@ function anim(sol)#Plot computed solution along with analytical solution
     xas = LinRange(0,L,Np1)
     Nt = size(trange)[1]
     anim = @animate for i in trange
-        plot(xas,sol(i)[Np1+1:end],title=title*" Time: $(@sprintf "%.2E" i)",
+        plot(xas,sol(i)[Np1+1:end],title="t: $(@sprintf "%.2E" i)",
         label="Computed Solution",ylabel = "p (Pa)",xlabel="x (m)",ylims=[0,p_max])
         plot!(xas,analytical(initial_u(Np1),i,LinearInterpolation,1),label="Analytical solution")
         plot!(xas,0.5*p_max*ones(Np1),label="0.5 p_max")
@@ -84,7 +84,7 @@ function err_anim(sol)#Plot relative error of computed solution
     xas = LinRange(0,L,Np1)
     Nt = size(trange)[1]
     anim = @animate for t in trange
-        plot(xas,(sol(t)[Np1+1:end]-analytical(initial_u(Np1),t))/p_max,title=title*" Time: $(@sprintf "%.2E" t)",
+        plot(xas,(sol(t)[Np1+1:end]-analytical(initial_u(Np1),t,LinearInterpolation,1))/p_max,title="t: $(@sprintf "%.2E" t)",
         label="Relative Error",xlabel="x (m)")
     end
     gif(anim,"default_plot.gif",fps=3)
